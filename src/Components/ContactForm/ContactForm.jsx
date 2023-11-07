@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import {
   StyledButton,
   StyledForm,
@@ -7,10 +6,11 @@ import {
 } from './ContactForm.styled.';
 
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { addContact, fetchContacts } from 'redux/contactsSlice';
+import {
+  useAddContactMutation,
+  useGetContactsQuery,
+} from 'redux/contactsSlice';
 import { useForm } from 'react-hook-form';
-import { selectContacts } from 'redux/contacts.selectors';
 
 const ContactForm = () => {
   const {
@@ -20,20 +20,16 @@ const ContactForm = () => {
     formState: { errors },
   } = useForm();
 
-  const contacts = useSelector(selectContacts);
+  const { data: contacts } = useGetContactsQuery();
 
-  const dispatch = useDispatch();
+  const [addContact] = useAddContactMutation();
 
-  useEffect(() => {
-    // dispatch(fetchContacts());
-  }, [dispatch]);
-
-  const onSubmit = data => {
+  const onSubmit = newContact => {
     contacts.some(
-      contact => contact.name.toLowerCase() === data.name.toLowerCase()
+      contact => contact.name.toLowerCase() === newContact.name.toLowerCase()
     )
-      ? alert(`${data.name} is already in contacts`)
-      : dispatch(addContact(data));
+      ? alert(`${newContact.name} is already in contacts`)
+      : addContact(newContact);
     reset();
   };
 

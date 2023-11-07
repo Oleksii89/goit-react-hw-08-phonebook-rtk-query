@@ -1,60 +1,50 @@
 import { createSlice, isAnyOf } from '@reduxjs/toolkit';
-import { createAsyncThunk } from '@reduxjs/toolkit/dist';
-import {
-  requestAddContact,
-  requestContacts,
-  requestDeleteContact,
-} from 'services/api';
-
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 export const contactsApi = createApi({
   reducerPath: 'contacts',
   baseQuery: fetchBaseQuery({
     baseUrl: 'https://connections-api.herokuapp.com',
+    prepareHeaders: (headers, { getState }) => {
+      const token = getState().auth.token;
+
+      // If we have a token set in state, let's assume that we should be passing it.
+      if (token) {
+        headers.set('authorization', `Bearer ${token}`);
+      }
+
+      return headers;
+    },
   }),
+  tagTypes: ['Contacts'],
   endpoints: builder => ({
     getContacts: builder.query({
       query: () => `/contacts`,
+      providesTags: ['Contacts'],
+    }),
+    addContact: builder.mutation({
+      query: newContact => ({
+        url: `/contacts`,
+        method: 'POST',
+        body: newContact,
+      }),
+      invalidatesTags: ['Contacts'],
+    }),
+    deleteContact: builder.mutation({
+      query: contactId => ({
+        url: `/contacts/${contactId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Contacts'],
     }),
   }),
 });
 
-export const { useGetContactsQuery } = contactsApi;
-
-// export const fetchContacts = createAsyncThunk(
-//   'contacts/fetchAll',
-//   async (_, thunkAPI) => {
-//     try {
-//       const contactsData = await requestContacts();
-//       return contactsData;
-//     } catch (error) {
-//       return thunkAPI.rejectWithValue(error.message);
-//     }
-//   }
-// );
-export const addContact = createAsyncThunk(
-  'contacts/addContact',
-  async (newContact, thunkAPI) => {
-    try {
-      const contact = await requestAddContact(newContact);
-      return contact;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(error.message);
-    }
-  }
-);
-export const deleteContact = createAsyncThunk(
-  'contacts/deleteContact',
-  async (contactId, thunkAPI) => {
-    try {
-      const deletedContact = await requestDeleteContact(contactId);
-      return deletedContact;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(error.message);
-    }
-  }
-);
+export const {
+  useGetContactsQuery,
+  useAddContactMutation,
+  useDeleteContactMutation,
+} = contactsApi;
 
 const INITIAL_STATE = {
   contactsData: [],
@@ -68,46 +58,6 @@ const contactsSlice = createSlice({
   // Початковий стан редюсера слайсу
   initialState: INITIAL_STATE,
   // Об'єкт редюсерів
-
-  // extraReducers: builder =>
-  //   builder
-  //     .addCase(fetchContacts.fulfilled, (state, action) => {
-  //       state.isLoading = false;
-  //       state.contactsData = action.payload;
-  //     })
-  //     .addCase(addContact.fulfilled, (state, action) => {
-  //       state.isLoading = false;
-  //       state.contactsData = [...state.contactsData, action.payload];
-  //     })
-  //     .addCase(deleteContact.fulfilled, (state, action) => {
-  //       state.isLoading = false;
-  //       state.contactsData = state.contactsData.filter(
-  //         contactData => contactData.id !== action.payload.id
-  //       );
-  //     })
-
-  //     .addMatcher(
-  //       isAnyOf(
-  //         fetchContacts.pending,
-  //         addContact.pending,
-  //         deleteContact.pending
-  //       ),
-  //       (state, action) => {
-  //         state.isLoading = true;
-  //         state.error = null;
-  //       }
-  //     )
-  //     .addMatcher(
-  //       isAnyOf(
-  //         fetchContacts.rejected,
-  //         addContact.rejected,
-  //         deleteContact.rejected
-  //       ),
-  //       (state, action) => {
-  //         state.isLoading = false;
-  //         state.error = action.payload;
-  //       }
-  //     ),
 });
 
 // Редюсер слайсу
