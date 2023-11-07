@@ -6,17 +6,33 @@ import {
   requestDeleteContact,
 } from 'services/api';
 
-export const fetchContacts = createAsyncThunk(
-  'contacts/fetchAll',
-  async (_, thunkAPI) => {
-    try {
-      const contactsData = await requestContacts();
-      return contactsData;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(error.message);
-    }
-  }
-);
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+
+export const contactsApi = createApi({
+  reducerPath: 'contacts',
+  baseQuery: fetchBaseQuery({
+    baseUrl: 'https://connections-api.herokuapp.com',
+  }),
+  endpoints: builder => ({
+    getContacts: builder.query({
+      query: () => `/contacts`,
+    }),
+  }),
+});
+
+export const { useGetContactsQuery } = contactsApi;
+
+// export const fetchContacts = createAsyncThunk(
+//   'contacts/fetchAll',
+//   async (_, thunkAPI) => {
+//     try {
+//       const contactsData = await requestContacts();
+//       return contactsData;
+//     } catch (error) {
+//       return thunkAPI.rejectWithValue(error.message);
+//     }
+//   }
+// );
 export const addContact = createAsyncThunk(
   'contacts/addContact',
   async (newContact, thunkAPI) => {
@@ -53,45 +69,45 @@ const contactsSlice = createSlice({
   initialState: INITIAL_STATE,
   // Об'єкт редюсерів
 
-  extraReducers: builder =>
-    builder
-      .addCase(fetchContacts.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.contactsData = action.payload;
-      })
-      .addCase(addContact.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.contactsData = [...state.contactsData, action.payload];
-      })
-      .addCase(deleteContact.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.contactsData = state.contactsData.filter(
-          contactData => contactData.id !== action.payload.id
-        );
-      })
+  // extraReducers: builder =>
+  //   builder
+  //     .addCase(fetchContacts.fulfilled, (state, action) => {
+  //       state.isLoading = false;
+  //       state.contactsData = action.payload;
+  //     })
+  //     .addCase(addContact.fulfilled, (state, action) => {
+  //       state.isLoading = false;
+  //       state.contactsData = [...state.contactsData, action.payload];
+  //     })
+  //     .addCase(deleteContact.fulfilled, (state, action) => {
+  //       state.isLoading = false;
+  //       state.contactsData = state.contactsData.filter(
+  //         contactData => contactData.id !== action.payload.id
+  //       );
+  //     })
 
-      .addMatcher(
-        isAnyOf(
-          fetchContacts.pending,
-          addContact.pending,
-          deleteContact.pending
-        ),
-        (state, action) => {
-          state.isLoading = true;
-          state.error = null;
-        }
-      )
-      .addMatcher(
-        isAnyOf(
-          fetchContacts.rejected,
-          addContact.rejected,
-          deleteContact.rejected
-        ),
-        (state, action) => {
-          state.isLoading = false;
-          state.error = action.payload;
-        }
-      ),
+  //     .addMatcher(
+  //       isAnyOf(
+  //         fetchContacts.pending,
+  //         addContact.pending,
+  //         deleteContact.pending
+  //       ),
+  //       (state, action) => {
+  //         state.isLoading = true;
+  //         state.error = null;
+  //       }
+  //     )
+  //     .addMatcher(
+  //       isAnyOf(
+  //         fetchContacts.rejected,
+  //         addContact.rejected,
+  //         deleteContact.rejected
+  //       ),
+  //       (state, action) => {
+  //         state.isLoading = false;
+  //         state.error = action.payload;
+  //       }
+  //     ),
 });
 
 // Редюсер слайсу

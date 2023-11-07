@@ -25,7 +25,7 @@ const ContactForm = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(fetchContacts());
+    // dispatch(fetchContacts());
   }, [dispatch]);
 
   const onSubmit = data => {
